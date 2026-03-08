@@ -50,8 +50,8 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/burningcost/credibility"
-Issues = "https://github.com/burningcost/credibility/issues"
+Repository = "https://github.com/burning-cost/credibility"
+Issues = "https://github.com/burning-cost/credibility/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/credibility"]

@@ -25,7 +25,7 @@
 # DBTITLE 1,Install credibility
 # %pip install credibility polars numpy
 # If installing from source:
-# %pip install git+https://github.com/burningcost/credibility.git
+# %pip install git+https://github.com/burning-cost/credibility.git
 
 # For this notebook we install polars directly since the package may be
 # installed in the cluster already:
