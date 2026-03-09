@@ -223,6 +223,16 @@ The large v reflects substantial quarter-to-quarter claim severity variation wit
 
 - **actuar (R)** is the gold standard reference. This package matches its output on the Hachemeister dataset.
 
+- **[insurance-multilevel](https://github.com/burning-cost/insurance-multilevel)** extends these ideas into the GBM world. If your portfolio has high-cardinality group factors (hundreds of brokers, schemes, or affinity partners) alongside non-linear individual risk factors, insurance-multilevel runs a two-stage CatBoost + REML approach: CatBoost handles the individual risk factors, REML applies Bühlmann-Straub credibility weighting to the group-level residuals. The credibility_summary() output mirrors the μ, v, a, k notation used here.
+
+---
+
+## What next?
+
+If this library covers your needs for scheme or geographic credibility, that's the end of the road. But if you are working with a portfolio where group factors (brokers, schemes, affinity partners) sit alongside genuinely non-linear individual risk factors — age bands, vehicle type, claims history — you will hit the limits of a purely credibility-based approach. The individual risk factors belong in a GBM; the group factors need shrinkage.
+
+[insurance-multilevel](https://github.com/burning-cost/insurance-multilevel) is built for exactly that problem. It runs CatBoost on individual risk factors in Stage 1, then applies REML random effects (the same credibility weighting logic as here) to the group-level residuals in Stage 2. The two libraries share the same structural parameter notation (μ, v, a, k) and are designed to be used together.
+
 ---
 
 ## References
