@@ -1,9 +1,10 @@
 # credibility
 [![Tests](https://github.com/burning-cost/credibility/actions/workflows/tests.yml/badge.svg)](https://github.com/burning-cost/credibility/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/credibility)](https://pypi.org/project/credibility/)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![License: MIT](https://img.shields.io/badge/license-MIT-green) ![PyPI](https://img.shields.io/pypi/v/credibility)
-
-Bühlmann-Straub credibility models for non-life insurance pricing.
+Bühlmann-Straub credibility models for non-life insurance pricing. For UK scheme and affinity pricing teams who currently do this in Excel.
 
 ---
 
@@ -13,11 +14,17 @@ You price a portfolio of schemes. Scheme A has three years of data and a 72% los
 
 If you give it full weight, you are at the mercy of three years of claims volatility. If you ignore it entirely and use the book rate, you are mispricing the scheme's risk profile. The right answer is somewhere between the two - and the position depends on:
 
-1. How much exposure scheme A has (more exposure → more trust in its own data)
-2. How noisy year-to-year loss ratios are across the portfolio (noisier → trust the book more)
-3. How genuinely different schemes are from each other (more heterogeneous → trust each scheme's own data more)
+1. How much exposure scheme A has (more exposure -> more trust in its own data)
+2. How noisy year-to-year loss ratios are across the portfolio (noisier -> trust the book more)
+3. How genuinely different schemes are from each other (more heterogeneous -> trust each scheme's own data more)
 
 Bühlmann-Straub credibility theory gives a mathematically rigorous way to estimate all three and compute the optimal blend. This package implements it in Python, with no dependencies beyond NumPy and Polars.
+
+---
+
+## Blog post
+
+[Bühlmann-Straub Credibility in Python: Blending Thin Segments with Portfolio Experience](https://burning-cost.github.io/2026/03/06/buhlmann-straub-credibility-in-python/)
 
 ---
 
@@ -25,7 +32,7 @@ Bühlmann-Straub credibility theory gives a mathematically rigorous way to estim
 
 - **`BuhlmannStraub`**: the standard two-parameter model. Given a panel of loss rates with exposure weights, it estimates the structural parameters (EPV, VHM, Bühlmann's k) and produces credibility-weighted premiums for each group.
 
-- **`HierarchicalBuhlmannStraub`**: multi-level extension for nested structures. Useful for geographic rating (region → district → sector) or organisational hierarchies (portfolio → scheme → sub-scheme), where thin nodes borrow strength from their parent.
+- **`HierarchicalBuhlmannStraub`**: multi-level extension for nested structures. Useful for geographic rating (region -> district -> sector) or organisational hierarchies (portfolio -> scheme -> sub-scheme), where thin nodes borrow strength from their parent.
 
 ---
 
@@ -149,7 +156,7 @@ model.premiums_at("district")       # blended district-level premiums
 model.level_results_["district"].k  # Bühlmann's k at district level
 ```
 
-The model fits variance components bottom-up (sector → district → area) and then computes premiums top-down, so each sector's final premium reflects the information at all three levels.
+The model fits variance components bottom-up (sector -> district -> area) and then computes premiums top-down, so each sector's final premium reflects the information at all three levels.
 
 ### Using pandas DataFrames
 
@@ -175,9 +182,9 @@ bs.premiums_
 | Parameter | Symbol | Meaning |
 |---|---|---|
 | Collective mean | mu | Grand weighted average loss rate across all groups |
-| Process variance | v (EPV) | Average within-group year-to-year variance. High v → noisy data → lean on book |
-| Between-group variance | a (VHM) | Variance of true loss rates between groups. High a → groups genuinely differ → trust their own data |
-| Bühlmann's k | k = v/a | Exposure at which a group reaches Z = 0.5. Small k → fast path to credibility |
+| Process variance | v (EPV) | Average within-group year-to-year variance. High v -> noisy data -> lean on book |
+| Between-group variance | a (VHM) | Variance of true loss rates between groups. High a -> groups genuinely differ -> trust their own data |
+| Bühlmann's k | k = v/a | Exposure at which a group reaches Z = 0.5. Small k -> fast path to credibility |
 | Credibility factor | Z_i | W_i / (W_i + k), where W_i is the group's total exposure |
 | Credibility premium | P_i | Z_i * X_bar_i + (1 - Z_i) * mu |
 
@@ -224,26 +231,26 @@ The large v reflects substantial quarter-to-quarter claim severity variation wit
 
 - **actuar (R)** is the gold standard reference. This package matches its output on the Hachemeister dataset.
 
-- **[insurance-multilevel](https://github.com/burning-cost/insurance-multilevel)** extends these ideas into the GBM world. If your portfolio has high-cardinality group factors (hundreds of brokers, schemes, or affinity partners) alongside non-linear individual risk factors, insurance-multilevel runs a two-stage CatBoost + REML approach: CatBoost handles the individual risk factors, REML applies Bühlmann-Straub credibility weighting to the group-level residuals. The credibility_summary() output mirrors the μ, v, a, k notation used here.
+- **[insurance-multilevel](https://github.com/burning-cost/insurance-multilevel)** extends these ideas into the GBM world. If your portfolio has high-cardinality group factors (hundreds of brokers, schemes, or affinity partners) alongside non-linear individual risk factors, insurance-multilevel runs a two-stage CatBoost + REML approach: CatBoost handles the individual risk factors, REML applies Bühlmann-Straub credibility weighting to the group-level residuals. The credibility_summary() output mirrors the mu, v, a, k notation used here.
 
 ---
 
 ## What next?
 
-If this library covers your needs for scheme or geographic credibility, that's the end of the road. But if you are working with a portfolio where group factors (brokers, schemes, affinity partners) sit alongside genuinely non-linear individual risk factors — age bands, vehicle type, claims history — you will hit the limits of a purely credibility-based approach. The individual risk factors belong in a GBM; the group factors need shrinkage.
+If this library covers your needs for scheme or geographic credibility, that's the end of the road. But if you are working with a portfolio where group factors (brokers, schemes, affinity partners) sit alongside genuinely non-linear individual risk factors - age bands, vehicle type, claims history - you will hit the limits of a purely credibility-based approach. The individual risk factors belong in a GBM; the group factors need shrinkage.
 
-[insurance-multilevel](https://github.com/burning-cost/insurance-multilevel) is built for exactly that problem. It runs CatBoost on individual risk factors in Stage 1, then applies REML random effects (the same credibility weighting logic as here) to the group-level residuals in Stage 2. The two libraries share the same structural parameter notation (μ, v, a, k) and are designed to be used together.
+[insurance-multilevel](https://github.com/burning-cost/insurance-multilevel) is built for exactly that problem. It runs CatBoost on individual risk factors in Stage 1, then applies REML random effects (the same credibility weighting logic as here) to the group-level residuals in Stage 2. The two libraries share the same structural parameter notation (mu, v, a, k) and are designed to be used together.
 
 ---
 
 ## References
 
-1. Bühlmann, H. (1967). Experience rating and credibility. *ASTIN Bulletin*, 4(3), 199–207.
-2. Bühlmann, H. & Straub, E. (1970). Glaubwürdigkeit für Schadensätze. *Mitteilungen VSVM*, 70, 111–133.
-3. Jewell, W.S. (1975). Regularity conditions for exact credibility. *ASTIN Bulletin*, 8(3), 336–341.
+1. Bühlmann, H. (1967). Experience rating and credibility. *ASTIN Bulletin*, 4(3), 199-207.
+2. Bühlmann, H. & Straub, E. (1970). Glaubwürdigkeit für Schadensätze. *Mitteilungen VSVM*, 70, 111-133.
+3. Jewell, W.S. (1975). Regularity conditions for exact credibility. *ASTIN Bulletin*, 8(3), 336-341.
 4. Hachemeister, C.A. (1975). Credibility for regression models with application to trend. In *Credibility: Theory and Applications*, Academic Press.
 5. Bühlmann, H. & Gisler, A. (2005). *A Course in Credibility Theory and its Applications*. Springer.
-6. Ohlsson, E. (2008). Combining generalized linear models and credibility models in practice. *Scandinavian Actuarial Journal*, 2008(4), 301–314.
+6. Ohlsson, E. (2008). Combining generalized linear models and credibility models in practice. *Scandinavian Actuarial Journal*, 2008(4), 301-314.
 7. Dutang, C., Goulet, V. & Pigeon, M. actuar: Actuarial functions and heavy-tailed distributions. R package, CRAN.
 
 ---
@@ -254,39 +261,39 @@ If this library covers your needs for scheme or geographic credibility, that's t
 
 | Library | Description |
 |---------|-------------|
-| [shap-relativities](https://github.com/burningcost/shap-relativities) | Extract rating relativities from GBMs using SHAP |
-| [insurance-interactions](https://github.com/burningcost/insurance-interactions) | Automated GLM interaction detection via CANN and NID scores |
-| [insurance-cv](https://github.com/burningcost/insurance-cv) | Walk-forward cross-validation respecting IBNR structure |
+| [shap-relativities](https://github.com/burning-cost/shap-relativities) | Extract rating relativities from GBMs using SHAP |
+| [insurance-interactions](https://github.com/burning-cost/insurance-interactions) | Automated GLM interaction detection via CANN and NID scores |
+| [insurance-cv](https://github.com/burning-cost/insurance-cv) | Walk-forward cross-validation respecting IBNR structure |
 
 **Uncertainty quantification**
 
 | Library | Description |
 |---------|-------------|
-| [insurance-conformal](https://github.com/burningcost/insurance-conformal) | Distribution-free prediction intervals for Tweedie models |
-| [bayesian-pricing](https://github.com/burningcost/bayesian-pricing) | Hierarchical Bayesian models for thin-data segments |
+| [insurance-conformal](https://github.com/burning-cost/insurance-conformal) | Distribution-free prediction intervals for Tweedie models |
+| [bayesian-pricing](https://github.com/burning-cost/bayesian-pricing) | Hierarchical Bayesian models for thin-data segments |
 
 **Deployment and optimisation**
 
 | Library | Description |
 |---------|-------------|
-| [rate-optimiser](https://github.com/burningcost/rate-optimiser) | Constrained rate change optimisation with FCA PS21/5 compliance |
-| [insurance-demand](https://github.com/burningcost/insurance-demand) | Conversion, retention, and price elasticity modelling |
+| [rate-optimiser](https://github.com/burning-cost/rate-optimiser) | Constrained rate change optimisation with FCA PS21/5 compliance |
+| [insurance-demand](https://github.com/burning-cost/insurance-demand) | Conversion, retention, and price elasticity modelling |
 
 **Governance**
 
 | Library | Description |
 |---------|-------------|
-| [insurance-fairness](https://github.com/burningcost/insurance-fairness) | Proxy discrimination auditing for UK insurance models |
-| [insurance-causal](https://github.com/burningcost/insurance-causal) | Double Machine Learning for causal pricing inference |
-| [insurance-monitoring](https://github.com/burningcost/insurance-monitoring) | Model monitoring: PSI, A/E ratios, Gini drift test |
+| [insurance-fairness](https://github.com/burning-cost/insurance-fairness) | Proxy discrimination auditing for UK insurance models |
+| [insurance-causal](https://github.com/burning-cost/insurance-causal) | Double Machine Learning for causal pricing inference |
+| [insurance-monitoring](https://github.com/burning-cost/insurance-monitoring) | Model monitoring: PSI, A/E ratios, Gini drift test |
 
 **Spatial**
 
 | Library | Description |
 |---------|-------------|
-| [insurance-spatial](https://github.com/burningcost/insurance-spatial) | BYM2 spatial territory ratemaking for UK personal lines |
+| [insurance-spatial](https://github.com/burning-cost/insurance-spatial) | BYM2 spatial territory ratemaking for UK personal lines |
 
-[All libraries →](https://burningcost.github.io)
+[All libraries](https://burning-cost.github.io)
 
 ---
 
