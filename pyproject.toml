@@ -42,11 +42,17 @@ pandas = [
     # Optional bridge: accept pd.DataFrame input without breaking existing users.
     # Not required for the core library — install only if you pass pandas DataFrames.
     "pandas>=1.3",
+    # pyarrow is required by polars.from_pandas() on Python 3.12+ for non-numpy-backed
+    # dtypes (e.g. string columns). Without it the conversion raises ImportError.
+    "pyarrow>=10.0",
 ]
 dev = [
     "pytest>=7.0",
     "pytest-cov",
     "pandas>=1.3",  # tests include a pandas-bridge test
+    # pyarrow is required by polars.from_pandas() on Python 3.12+ for string/object
+    # columns. Adding it here ensures the pandas-bridge test passes in CI.
+    "pyarrow>=10.0",
 ]
 
 [project.urls]
