@@ -270,6 +270,27 @@ This package consolidates two previously separate libraries:
 
 ---
 
+---
+
+## Performance
+
+Benchmarked on synthetic Poisson frequency data with known ground truth — 20 segments (5 thin with ~250 total policies, 15 thick with ~25,000 total policies), 5 accident years each. MSE evaluated against true DGP segment frequencies. Full notebook: `notebooks/benchmark.py`.
+
+| Subset | Grand mean | Raw mean | Credibility (Bühlmann-Straub) |
+|--------|-----------|---------|-------------------------------|
+| Thin segments (n=5) | moderate MSE | highest MSE | lower than raw |
+| Thick segments (n=15) | highest MSE | lowest MSE | matches raw |
+| All segments (n=20) | — | — | lowest overall |
+
+The benchmark estimates structural parameters from the data (mu, v, a, k) and shows Bühlmann's k automatically setting near-zero credibility weights (Z ≈ 0.10–0.20) for thin segments and near-full weights (Z ≈ 0.99) for thick ones — without any manual specification of which segments are reliable.
+
+On thin segments the raw mean has the highest variance; on thick segments the grand mean has the highest bias. Credibility is the Bayes-optimal blend under the random-effects model, so it beats both extremes in MSE whenever the portfolio has genuine between-segment heterogeneity and mixed exposure depths.
+
+**When to use:** Commercial fleet schemes, affinity groups, rating territories, or occupation classes where exposure per segment varies substantially — some segments are data-rich, others barely have enough claims to compute a stable rate. The closed-form estimator is milliseconds on any panel dataset a pricing team would encounter.
+
+**When NOT to use:** When you have fewer than five or six groups (structural parameters become unstable), when group membership is itself a non-linear rating factor that interacts with individual risk characteristics (use a GLM or GBM instead), or when `a_hat` estimates as zero — which the model will tell you explicitly, meaning the data show no detectable between-group heterogeneity.
+
+
 ## Other Burning Cost libraries
 
 **Model building**
